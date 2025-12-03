@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login e Carta Personalizada</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            transition: background 0.5s;
+        }
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .login-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 300px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+        .dashboard {
+            display: none;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .slideshow {
+            position: relative;
+            max-width: 100%;
+            margin: 10px 0;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        .slides {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+        .slide {
+            min-width: 100%;
+            height: 150px;
+        }
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .nav-buttons {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+        }
+        .nav-buttons button {
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+        }
+        .logout {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="loginContainer">
+        <div class="login-form">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <input type="text" id="username" placeholder="Usuário" required>
+                <input type="password" id="password" placeholder="Senha" required>
+                <button type="submit">Entrar</button>
+            </form>
+            <p id="errorMessage" class="error"></p>
+        </div>
+    </div>
+
+    <div class="dashboard" id="dashboard">
+        <h1>Sua Carta Personalizada!</h1>
+        <div class="card" id="userCard">
+            <!-- Conteúdo será inserido dinamicamente via JS -->
+        </div>
+        <button class="logout" onclick="logout()">Sair</button>
+    </div>
+
+    <script>
+        // Lista de usuários e senhas (não editar aqui, a menos que adicione novos usuários)
+        const users = {
+            'Kevin': 'kevin5',
+            'Stella': 'stella6',
+            'Thiago': 'thiago6',
+            'Maria': 'maria5',
+            'Charles': 'charles7',
+            'Ingrid': 'ingrid6',
+            'Rayra': 'rayra5',
+            'Samara': 'samara6',
+            'Abreu': 'abreu5',
+            'Cauã': 'cauã4',
+            'Anaju': 'anaju5',
+            'Isabela': 'isabela7',
+            'Kamila': 'kamila6',
+            'Sofia': 'sofia5',
+            'Silva': 'silva5',
+            'Corrêa': 'corrêa6',
+            'Brunão': 'brunão6',
+            'Eduardo': 'eduardo7',
+            'Lulu': 'lulu4',
+            'Erick': 'erick5',
+            'Vitin': 'vitin5',
+            'Gustavo': 'gustavo7',
+            'Flávio': 'flávio6',
+            'Lucas': 'lucas5',
+            'Bruna': 'bruna5',
+            'Omerio': 'omerio6',
+            'Gisele': 'gisele6',
+            'Claudinei': 'claudinei9',
+            'Lyria': 'lyria5',
+            'Simone': 'simone6',
+            'Claudia': 'claudia7',
+            'Ivone': 'ivone5',
+            'Paulo': 'paulo5',
+            'Geraldo': 'geraldo7',
+            'Lauro': 'lauro5',
+            'Fabiana': 'fabiana7',
+            'Jaqueline': 'jaqueline9',
+            'Elves': 'elves5',
+            'Carlos': 'carlos6',
+            'Luis': 'luis4',
+            'Davi': 'davi4',
+            'Joseph': 'joseph6',
+            'Miro': 'miro4',
+            'Anderson': 'anderson8',
+            'Elysama': 'elysama7'
+        };
+
+        // EDITAR AQUI: Conteúdo personalizado para cada carta
+        // Substitua os placeholders por conteúdo real. Cada entrada corresponde a um usuário.
+        // - title: Título da carta (ex.: "Carta para Kevin").
+        // - message: Texto da mensagem (edite diretamente aqui).
+        // - mainPhoto: URL da foto principal (ex.: "https://i.imgur.com/exemplo.jpg").
+        // - memories: Array de URLs para o slideshow (adicione/remova quantas quiser).
+        const userCards = {
+    'Kevin': {
+        title: 'E nois negow  Kevin',
+        message: 'Te conheço a mo cota e nao e so pq essa porra acabou que nossa amizade vai acabar tbm saiba que te considero mt e vou te guarda sempre na memoria ',
+        mainPhoto: 'https://i.imgur.com/V58V2yF.jpeg',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Kevin',
+            'https://via.placeholder.com/300x150?text=Memória+2+Kevin',
+            'https://via.placeholder.com/300x150?text=Memória+3+Kevin'
+        ]
+    },
+
+    'Stella': {
+        title: 'Carta para Stella',
+        message: 'Stella, você é uma amiga incrível! Vamos manter contato sempre.',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Stella',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Stella',
+            'https://via.placeholder.com/300x150?text=Memória+2+Stella',
+            'https://via.placeholder.com/300x150?text=Memória+3+Stella'
+        ]
+    },
+
+    'Thiago': {
+        title: 'E ae lula molusco armonizado Thiago',
+        message: 'eae nego vsfd , mano tu sabe q eu te considero mt e tal, vlw msm por tudo q a gente passou junto, tu eh um cara foda e vou levar isso cmg pra vida toda, tamo junto msm qm sabe a gente n se ve mais mas a amizade fica pra sempre, flw nego se cuida ai tmj',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Thiago',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Thiago',
+            'https://via.placeholder.com/300x150?text=Memória+2+Thiago',
+            'https://via.placeholder.com/300x150?text=Memória+3+Thiago'
+        ]
+    },
+
+    'Maria': {
+        title: 'Maria / Duda',
+        message: 'Ainda nao caiu a ficha pra min que daqui uns dias agente nao vai se ver mais todos os dias e isso me pega muito pois te considero pra krlh papo de irmao msm contudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente as vezes que eu fui desnecessário ou que fiz algo que você não tenha gostado.no demais e isso tudo de bom para você',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Maria',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Maria',
+            'https://via.placeholder.com/300x150?text=Memória+2+Maria',
+            'https://via.placeholder.com/300x150?text=Memória+3+Maria'
+        ]
+    },
+
+    // MODELO PADRÃO PARA TODOS OS OUTROS NOMES
+
+    'Charles': {
+        title: 'Charles / Charles',
+        message: 'contudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que você não tenha gostado. no demais e isso tudo de bom para você',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Charles',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Charles',
+            'https://via.placeholder.com/300x150?text=Memória+2+Charles',
+            'https://via.placeholder.com/300x150?text=Memória+3+Charles'
+        ]
+    },
+
+    'Ingrid': {
+        title: 'Ingrid / Ingrid',
+        message: 'contudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que você não tenha gostado. no demais e isso tudo de bom para você',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Ingrid',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Ingrid',
+            'https://via.placeholder.com/300x150?text=Memória+2+Ingrid',
+            'https://via.placeholder.com/300x150?text=Memória+3+Ingrid'
+        ]
+    },
+
+    'Rayra': {
+        title: 'Rayra / Rayra',
+        message: 'contudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que você não tenha gostado. no demais e isso tudo de bom para você',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Rayra',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Rayra',
+            'https://via.placeholder.com/300x150?text=Memória+2+Rayra',
+            'https://via.placeholder.com/300x150?text=Memória+3+Rayra'
+        ]
+    },
+
+    'Samara': {
+        title: 'Samara / Samara',
+        message: 'contudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que você não tenha gostado. no demais e isso tudo de bom para você',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Samara',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Samara',
+            'https://via.placeholder.com/300x150?text=Memória+2+Samara',
+            'https://via.placeholder.com/300x150?text=Memória+3+Samara'
+        ]
+    },
+
+    'Abreu': {
+        title: 'Abreu / Abreu',
+        message: 'contudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que você não tenha gostado. no demais e isso tudo de bom para você',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Abreu',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Abreu',
+            'https://via.placeholder.com/300x150?text=Memória+2+Abreu',
+            'https://via.placeholder.com/300x150?text=Memória+3+Abreu'
+        ]
+    },
+
+    'Cauã': {
+        title: 'Cauã / Cauã',
+        message: 'contudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que você não tenha gostado. no demais e isso tudo de bom para você',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Cauã',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Cauã',
+            'https://via.placeholder.com/300x150?text=Memória+2+Cauã',
+            'https://via.placeholder.com/300x150?text=Memória+3+Cauã'
+        ]
+    },
+
+    'Anaju': {
+        title: 'De João Paulo, Para Anaju',
+        message: 'Obrigado Pelos 3 anos de convivencia Obrigado pelas risadas e as brincadeiras contudo saiba que sempre vou lembrar de voce com bastante carinhocontudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que você não tenha gostado. no demais e isso tudo de bom para você no demais boa sorte pra voce na sua vida saiba que se precisar conversar pra quaquer coisa estou ai',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Anaju',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Anaju',
+            'https://via.placeholder.com/300x150?text=Memória+2+Anaju',
+            'https://via.placeholder.com/300x150?text=Memória+3+Anaju'
+        ]
+    },
+
+    'Isabela': {
+        title: '  De João Paulo, Para Isabela',
+        message: 'Oi frooo, bom por onde começar quero que voce saiba que voce e uma das poucas pessoas que vou levar no coração pois gosto muito de tu pelo que agente ja passou, obrigada pelos momentos de risadas e pelas conversas. Contudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que você não tenha gostado. no demais e isso tudo de bom para você linda que deus abeçoe sua vida',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Isabela',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Isabela',
+            'https://via.placeholder.com/300x150?text=Memória+2+Isabela',
+            'https://via.placeholder.com/300x150?text=Memória+3+Isabela'
+        ]
+    },
+
+    'Kamila': {
+        title: 'De João Paulo, Para Kamila',
+        message: 'Confesso que no começo nao gostava de voce pq tinha escutado um monte de coisa mais depos que entramos na mesma trilha e eu conheçi a pessoa incrivel que voce é. contudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que você não tenha gostado. no demais e isso tudo de bom para você',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Kamila',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Kamila',
+            'https://via.placeholder.com/300x150?text=Memória+2+Kamila',
+            'https://via.placeholder.com/300x150?text=Memória+3+Kamila'
+        ]
+   
+    },
+
+    'Silva': {
+        title: 'De João Paulo, Para  Aninha',
+        message: 'oi fofa, bom vamos la obrigada por tudo quero que voce saiba que voce e uma pessoa incrivel,doce e muito legal que tu continue sendo essa pessoa maravilhosa que tu e, contudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que você não tenha gostado. no demais e isso tudo de bom para você linda',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Silva',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Silva',
+            'https://via.placeholder.com/300x150?text=Memória+2+Silva',
+            'https://via.placeholder.com/300x150?text=Memória+3+Silva'
+        ]
+    },
+
+    'Corrêa': {
+        title: 'De João Paulo, Para Corrêa',
+        message: 'isso ta mais pra um pedido desculpa, do que uma despedida no demais quero pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que você não tenha gostado. no demais e isso tudo de bom para você obrigado pelos momentos de risadas saiba que tu e uma pessoa incrivel e que vou levar isso cmg pra vida toda, tamo junto msm qm sabe a gente n se ve mais mas a amizade fica pra sempre, flw nego=a se cuida ai tmj',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Corrêa',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Corrêa',
+            'https://via.placeholder.com/300x150?text=Memória+2+Corrêa',
+            'https://via.placeholder.com/300x150?text=Memória+3+Corrêa'
+        ]
+    },
+
+    'Brunão': {
+        title: ' De João Paulo, Para Brunão',
+        message: 'FALA MEU GORDAO FOFAO COISA LINDA, valeu pelos momentos de risada e porcada vivençia nossa junta saiba que vou levar esses momentos pro resto da minha vida no demais tmj',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Brunão',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Brunão',
+            'https://via.placeholder.com/300x150?text=Memória+2+Brunão',
+            'https://via.placeholder.com/300x150?text=Memória+3+Brunão'
+        ]
+    },
+
+    'Eduardo': {
+        title: 'Eduardo / Eduardo',
+        message: 'contudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que você não tenha gostado. no demais e isso tudo de bom para você',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Eduardo',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Eduardo',
+            'https://via.placeholder.com/300x150?text=Memória+2+Eduardo',
+            'https://via.placeholder.com/300x150?text=Memória+3+Eduardo'
+        ]
+    },
+
+    'Lulu': {
+        title: 'Lulu / Lulu',
+        message: 'contudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que você não tenha gostado. no demais e isso tudo de bom para você',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Lulu',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Lulu',
+            'https://via.placeholder.com/300x150?text=Memória+2+Lulu',
+            'https://via.placeholder.com/300x150?text=Memória+3+Lulu'
+        ]
+    },
+
+    'Erick': {
+        title: 'De João Paulo, Para Erick',
+        message: 'fala meu pilotooooooo, bom saiba que vou sempre lembrar de voce quando ver qualquer coisa que remeta a aviação, quero que saiba que te considero mt e vou levar isso cmg pra vida toda, tamo junto msm qm sabe a gente n se ve mais mas a amizade fica pra sempre, flw nego se cuida ai tmj',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Erick',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Erick',
+            'https://via.placeholder.com/300x150?text=Memória+2+Erick',
+            'https://via.placeholder.com/300x150?text=Memória+3+Erick'
+        ]
+    },
+
+    'Vitin': {
+        title: 'De João Paulo, Para Vitin',
+        message: 'fala macacooo vlw por tudo pelos momentos de risada e por cada vivençia nossa junta saiba que vou levar esses momentos pro resto da minha vida no demais tmj',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Vitin',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Vitin',
+            'https://via.placeholder.com/300x150?text=Memória+2+Vitin',
+            'https://via.placeholder.com/300x150?text=Memória+3+Vitin'
+        ]
+    },
+
+    'Gustavo': {
+        title: 'De João Paulo, Para Gustavo',
+        message: 'fala meu frotografo, valeu por tudo boa sorte nessa vida sua que deus continue te abençoando e iluminando no demais tmj sempre',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Gustavo',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Gustavo',
+            'https://via.placeholder.com/300x150?text=Memória+2+Gustavo',
+            'https://via.placeholder.com/300x150?text=Memória+3+Gustavo'
+        ]
+    },
+
+    'Flávio': {
+        title: 'De João Paulo, Para Flávio',
+        message: 'fala petrobras obrigado por tudo pelos momentos de risada e por cada vivençia nossa junta saiba que vou levar esses momentos pro resto da minha vida no demais tmj' ,
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Flávio',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Flávio',
+            'https://via.placeholder.com/300x150?text=Memória+2+Flávio',
+            'https://via.placeholder.com/300x150?text=Memória+3+Flávio'
+        ]
+    },
+
+    'Lucas': {
+        title: 'De João Paulo, Para LULU',
+        message: 'fala nego vlw por tudo foi mal pelas desavenças mais saiba que tu e um cara pika e que tu continue sendo assim e nao deixe nimguem mudar esse seu geito de ser raçudo,engraçado extrovertido saiba que da nossa convivência vou levar so as coisas boa desde ja valeu por tudo e tmj sempre',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Lucas',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Lucas',
+            'https://via.placeholder.com/300x150?text=Memória+2+Lucas',
+            'https://via.placeholder.com/300x150?text=Memória+3+Lucas'
+        ]
+    },
+
+    'Bruna': {
+        title: 'De João Paulo, Para Bruna',
+        message: 'oiiiii fofaaaaaaa, primeiramente quero agradeçer por tudo pelas aulas pelos momentos de risada, que a senhora  continue sendo essa pessoa meiga,gentil. Saiba que o pouco tempo em que convivemos eu gostei muito da senhora e que a senhora foi uma pessoa muito especial para mim e que eu vou levar a senhora no meu coração para o resto da minha vida que a deus abençoe e continue abençoando sua vida ',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Bruna',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Bruna',
+            'https://via.placeholder.com/300x150?text=Memória+2+Bruna',
+            'https://via.placeholder.com/300x150?text=Memória+3+Bruna'
+        ]
+    },
+
+    'Omerio': {
+        title: 'De João Paulo, Para Omerio',
+        message: 'Omarioooooooooooo, bom o pouco tempo que convivi com o senhor eu gostei muito do senhor e quero que saiba que o senhor foi uma pessoa muito especial para mim e que eu vou levar o senhor no meu coração para o resto da minha vida muito obrigado por tudo msm tmj para sempre que o senhor continue sendo essa pessoa incivel ',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Omerio',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Omerio',
+            'https://via.placeholder.com/300x150?text=Memória+2+Omerio',
+            'https://via.placeholder.com/300x150?text=Memória+3+Omerio'
+        ]
+    },
+
+    'Gisele': {
+        title: 'De João Paulo, Para Gisele',
+        message: 'Sou muito grato pelos ensinamentos e pelos momentos que tivemos, pesso desculpas pelas vezes que vacilei e quero que saiba que gosto muito da senhora e que vou guardar para sempre na memoria',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Gisele',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Gisele',
+            'https://via.placeholder.com/300x150?text=Memória+2+Gisele',
+            'https://via.placeholder.com/300x150?text=Memória+3+Gisele'
+        ]
+    },
+
+    'Claudinei': {
+        title: 'De João Paulo, Para Claudinei',
+        message: 'Desculpas q te pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que o senhor não tenha gostado. no demais e isso tudo de bom para o shr',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Claudinei',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Claudinei',
+            'https://via.placeholder.com/300x150?text=Memória+2+Claudinei',
+            'https://via.placeholder.com/300x150?text=Memória+3+Claudinei'
+        ]
+    },
+
+    'Lyria': {
+        title: ' De João Paulo, Para  Lyria',
+        message: 'Obrigado Pela paciencia,pelos conselhos e pelos momentos de brincadeira, obrigada por acreditar em min quando nimguem nunca acreditou.Saiba que considero a senhora uma segunda mae e que nunca vou esquecer da senhora.Contudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Lyria',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Lyria',
+            'https://via.placeholder.com/300x150?text=Memória+2+Lyria',
+            'https://via.placeholder.com/300x150?text=Memória+3+Lyria'
+        ]
+    },
+
+    'Simone': {
+        title: 'De João Paulo Para: Simone',
+        message: 'Simoneeeeeeeeeee, obrigada por ser essa pessoa incrivel que voce é, obrigada pelos puxoes de oreia quero agradecer pelos momentos de risada e agradecer desde ja quero que deus abençoe a senhora e sua familia',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Simone',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Simone',
+            'https://via.placeholder.com/300x150?text=Memória+2+Simone',
+            'https://via.placeholder.com/300x150?text=Memória+3+Simone'
+        ]
+    },
+
+    'Claudia': {
+        title: 'De João Paulo Para: Claudia',
+        message: ' Clauuuuuuuu, que voce sempre continue sendo essa pessoa doce e delicada que voce é saiba que voce tem um lugar muito especial no meu coração e que eu vou levar voce comigo para o resto da minha vida muito obrigado por tudo msm',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Claudia',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Claudia',
+            'https://via.placeholder.com/300x150?text=Memória+2+Claudia',
+            'https://via.placeholder.com/300x150?text=Memória+3+Claudia'
+        ]
+    },
+
+    'Ivone': {
+        title: 'De João Paulo Para: Ivone',
+        message: 'ivoneeeeeeeeeeeeeeee, por mais que agente tenha se aproximado mais pro fim do ano quero que saiba que a senhora e uma pessoa incrivel e muito legal, obrigada por sempre me apoiar no meu futuro e sempre querer o que e melhor pra min desde ja que deus abencoe sua vida e sua familia',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Ivone',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Ivone',
+            'https://via.placeholder.com/300x150?text=Memória+2+Ivone',
+            'https://via.placeholder.com/300x150?text=Memória+3+Ivone'
+        ]
+    },
+
+    'Paulo': {
+        title: 'De João Paulo Para: Paulo',
+    message: 'professor que o senhor continue sendo esse cara incrivel que eu conheci e que eu vou levar para o resto da minha vida msm muito obrigado por tudo professor',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Paulo',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Paulo',
+            'https://via.placeholder.com/300x150?text=Memória+2+Paulo',
+            'https://via.placeholder.com/300x150?text=Memória+3+Paulo'
+        ]
+    },
+
+    'Geraldo': {
+        title: 'De João Paulo Para: Geraldo',
+        message: 'Obrigado pela paciencia e por cada ensinamento que deus abencoe o senhor e sua familia eternamente',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Geraldo',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Geraldo',
+            'https://via.placeholder.com/300x150?text=Memória+2+Geraldo',
+            'https://via.placeholder.com/300x150?text=Memória+3+Geraldo'
+        ]
+    },
+
+    'Lauro': {
+        title: 'De João Paulo Para: Lauro',
+        message: 'fala gargamel,bom quero agradecer pelas risadas pela paciencia e por cada momento legal que agente teve que o senhor continue sendo assim e compra uma shampoo novo sua careca ta perdendo o brilho',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Lauro',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Lauro',
+            'https://via.placeholder.com/300x150?text=Memória+2+Lauro',
+            'https://via.placeholder.com/300x150?text=Memória+3+Lauro'
+        ]
+    },
+
+    'Fabiana': {
+        title: 'De João Paulo Para: Fabiana',
+        message: 'OIII, quero que a senhora saiba que os pouco meses que convivemos eu gostei muito da senhora e que a senhora foi uma pessoa muito especial para mim e que eu vou levar a senhora no meu coração para o resto da minha vida muito obrigado por tudo msm tmj sempre ',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Fabiana',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Fabiana',
+            'https://via.placeholder.com/300x150?text=Memória+2+Fabiana',
+            'https://via.placeholder.com/300x150?text=Memória+3+Fabiana'
+        ]
+    },
+
+    'De João Paulo Para:Jaqueline': {
+        title: 'Jaqueline',
+        message: 'oiiii meio professora dessa escola meio que existe meio que todas magnifica multissimo obrigado pela paciencia e a calma que a senhora teve comigo.Contudo quero tbm te pedir desculpa, desculpas por as vezes que fui inconveniente, desnecessário ou fiz algo que você não tenha gostado. no demais e isso tudo de bom para você',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Jaqueline',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Jaqueline',
+            'https://via.placeholder.com/300x150?text=Memória+2+Jaqueline',
+            'https://via.placeholder.com/300x150?text=Memória+3+Jaqueline'
+        ]
+    },
+
+    'Elves': {
+        title: 'De João Paulo Para: Elves patinho',
+        message: 'fala peito de frango, bom quero que o senhor saiba que o shr foi mt marcante na minha vida e que eu vou levar nao so seus ensinamentos mais o shr na minha memoria e nois tmj (meu pato no vôlei) ',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Elves',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Elves',
+            'https://via.placeholder.com/300x150?text=Memória+2+Elves',
+            'https://via.placeholder.com/300x150?text=Memória+3+Elves'
+        ]
+    },
+
+    'Carlos': {
+        title: 'De João Paulo Para: Carlos',
+        message: 'fala carloss bom é acabou nosso tempo junto quero que voce saiba que voce foi muito especial para mim e que eu vou levar voce no meu coração para o resto da minha vida muito obrigado por tudo msm tmj sempre ',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Carlos',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Carlos',
+            'https://via.placeholder.com/300x150?text=Memória+2+Carlos',
+            'https://via.placeholder.com/300x150?text=Memória+3+Carlos'
+        ]
+    },
+
+    'Luis': {
+        title: 'De João Paulo Para: Luis',
+        message: 'fala homen bomba, primeiramente quero pedir desculpas pelas as vezes que te atrapalhei em aula no demais que o shr continue sendo esse cara incrivel que eu conheci e que eu vou levar para o resto da minha vida msm que agente n se veja mais sempre vou lembrar de vc e dos momentos que a gente passou junto valeu msm por tudo tmj',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Luis',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Luis',
+            'https://via.placeholder.com/300x150?text=Memória+2+Luis',
+            'https://via.placeholder.com/300x150?text=Memória+3+Luis'
+        ]
+    },
+
+    'Davi': {
+        title: 'De João Paulo Para: Davi',
+        message: 'eae shr gravidade quero que o senhor saiba que o pouco momento em que nois convivivemos muito gostei mt do shr e que o shr nunca mude o geito do shr ser e continue com as fotos viu',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Davi',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Davi',
+            'https://via.placeholder.com/300x150?text=Memória+2+Davi',
+            'https://via.placeholder.com/300x150?text=Memória+3+Davi'
+        ]
+    },
+
+    'Joseph': {
+        title: 'De João Paulo Para: Joseph',
+        message: 'ola professor joseph que o shr continue sendo essa pessoa com essa cantoria e esse instinto artistico imcomparavel que nunca mude seu geitinho de ser desde ja agradeco pelos conseolhos e puxoes de orelha',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Joseph',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Joseph',
+            'https://via.placeholder.com/300x150?text=Memória+2+Joseph',
+            'https://via.placeholder.com/300x150?text=Memória+3+Joseph'
+        ]
+    },
+
+    'Miro': {
+        title: 'De João Paulo Para: Miro',
+        message: 'Oi coisa linda,  é começamos junto e deus deu um geito de terminamos juntos quero que o senhor saiba que shr e uma pessoa incrivel que o senhor continue assim e nunca mude a sua personalidade saiba que eu vou levar o shr no coração para o resto da minha vidaa' , 
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Miro',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Miro',
+            'https://via.placeholder.com/300x150?text=Memória+2+Miro',
+            'https://via.placeholder.com/300x150?text=Memória+3+Miro'
+        ]
+    },
+
+    'Anderson': {
+        title: 'De João Paulo Para : Anderson',
+    message: 'fala mister anderson muito obrigado pelos momentos no qual tivemos quero senhor saiba que eu vou levar o senhor no meu coração para sempre muito obrigado por tudo msm ',
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Anderson',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Anderson',
+            'https://via.placeholder.com/300x150?text=Memória+2+Anderson',
+            'https://via.placeholder.com/300x150?text=Memória+3+Anderson'
+        ]
+    },
+
+    'Elysama': {
+        title: 'De João Paulo Para : Elysama',
+        message: "Obrigado por tudo muie do dinheiro obrigado pelos puchao de orelha pelas risadas saiba que eu vou sempre lembrar de da senhora "   ,
+        mainPhoto: 'https://via.placeholder.com/300x200?text=Foto+Elysama',
+        memories: [
+            'https://via.placeholder.com/300x150?text=Memória+1+Elysama',
+            'https://via.placeholder.com/300x150?text=Memória+2+Elysama',
+            'https://via.placeholder.com/300x150?text=Memória+3+Elysama'
+        ]
+    }
+};
+
+
+        // Código de login e carregamento (não editar, a menos que precise de mudanças funcionais)
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (users[username] === password && userCards[username]) {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                loadUserCard(username);
+            } else {
+                errorMessage.textContent = 'Usuário ou senha incorretos.';
+            }
+        });
+
+        function loadUserCard(username) {
+            const cardData = userCards[username];
+            const cardElement = document.getElementById('userCard');
+            cardElement.innerHTML = `
+                <h3>${cardData.title}</h3>
+                <p>${cardData.message}</p>
+                <img src="${cardData.mainPhoto}" alt="Foto principal">
+                <h4>Hall de Lembranças</h4>
+                <div class="slideshow">
+                    <div class="slides" id="slides">
+                        ${cardData.memories.map(src => `<div class="slide"><img src="${src}" alt="Memória"></div>`).join('')}
+                    </div>
+                    <div class="nav-buttons">
+                        <button onclick="prevSlide()">&#10094;</button>
+                        <button onclick="nextSlide()">&#10095;</button>
+                    </div>
+                </div>
+            `;
+            currentSlide = 0;
+            showSlide(0);
+        }
+
+        let currentSlide = 0;
+        const slides = document.getElementById('slides');
+
+        function showSlide(index) {
+            if (slides) {
+                slides.style.transform = `translateX(-${index * 100}%)`;
+            }
+        }
+
+        function nextSlide() {
+            const totalSlides = document.querySelectorAll('#slides .slide').length;
+            currentSlide = (currentSlide + 1) % totalSlides;
+            showSlide(currentSlide);
+        }
+
+        function prevSlide() {
+            const totalSlides = document.querySelectorAll('#slides .slide').length;
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            showSlide(currentSlide);
+        }
+
+        setInterval(nextSlide, 3000);
+
+        function logout() {
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('errorMessage').textContent = '';
+        }
+    </script>
+</body>
+</html>
